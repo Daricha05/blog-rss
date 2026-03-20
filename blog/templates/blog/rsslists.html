@@ -1,0 +1,15 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<h2>Articles RSS récents</h2>
+
+{% for article in articles %}
+<article>
+    <h3><a href="{% url 'blog:rss_detail' article.slug %}">{{ article.title }}</a></h3>
+    <p>{{ article.date|date:"d F Y" }}</p>
+    <p>{{ article.suggested_post|linebreaks }}</p>
+</article>
+{% empty %}
+<p>Aucun article publié pour le moment.</p>
+{% endfor %}
+{% endblock %}

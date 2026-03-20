@@ -1,0 +1,14 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<h2>Article récents</h2>
+
+{% for article in articles %}
+<article>
+    <h3><a href="{% url 'blog:detail' article.slug %}">{{article.title}}</a></h3>
+    <p>{{ article.published_at|date:"d F Y" }}</p>
+</article>
+{% empty %}
+<p>Aucun article pour le moment.</p>
+{% endfor %}
+{% endblock %}
