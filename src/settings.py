@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -56,10 +56,13 @@ ROOT_URLCONF = 'src.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -70,6 +73,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'src.wsgi.application'
 
+# Personnalisation du site admin
+ADMIN_SITE_HEADER = "Mon Blog Administration"
+ADMIN_SITE_TITLE = "Mon Blog Admin"
+ADMIN_INDEX_TITLE = "Bienvenue dans l'administration de Mon Blog"
+
+# URLs de redirection après connexion/déconnexion
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/' 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

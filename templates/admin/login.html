@@ -1,0 +1,243 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* Reset des styles Django admin pour la page de login */
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+    
+    #container {
+        width: 100% !important;
+        max-width: 450px !important;
+        margin: 0 auto !important;
+        background: white !important;
+        border-radius: 1rem !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.02) !important;
+        overflow: hidden !important;
+        position: relative !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+    
+    #header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        padding: 2rem !important;
+        text-align: center !important;
+        border-radius: 0 !important;
+    }
+    
+    #header h1 {
+        font-size: 1.875rem !important;
+        font-weight: 700 !important;
+        color: white !important;
+        margin: 0 !important;
+    }
+    
+    #content {
+        padding: 2rem !important;
+        background: white !important;
+    }
+    
+    /* Masquer les éléments superflus */
+    .breadcrumbs, #user-tools, #branding, .module h2, .module caption {
+        display: none !important;
+    }
+    
+    /* Style du formulaire */
+    .login form {
+        margin: 0 !important;
+    }
+    
+    .form-row {
+        margin-bottom: 1.5rem !important;
+        padding: 0 !important;
+        border: none !important;
+    }
+    
+    .form-row label {
+        display: block !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        color: #374151 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .form-row input {
+        width: 100% !important;
+        padding: 0.75rem 1rem !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.5rem !important;
+        font-size: 0.875rem !important;
+        transition: all 0.2s !important;
+        box-sizing: border-box !important;
+    }
+    
+    .form-row input:focus {
+        outline: none !important;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+    }
+    
+    .submit-row {
+        margin: 2rem 0 0 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+    
+    .submit-row input {
+        width: 100% !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        padding: 0.75rem !important;
+        border: none !important;
+        border-radius: 0.5rem !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+    
+    .submit-row input:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Messages d'erreur */
+    .errornote {
+        background-color: #fef2f2 !important;
+        border-left: 4px solid #ef4444 !important;
+        color: #dc2626 !important;
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 1.5rem !important;
+        border-radius: 0.5rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .password-reset-link {
+        text-align: center !important;
+        margin-top: 1.5rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 1px solid #e5e7eb !important;
+    }
+    
+    .password-reset-link a {
+        color: #667eea !important;
+        text-decoration: none !important;
+        font-size: 0.875rem !important;
+    }
+    
+    .password-reset-link a:hover {
+        color: #764ba2 !important;
+        text-decoration: underline !important;
+    }
+    
+    /* Footer */
+    #footer {
+        display: none !important;
+    }
+    
+    /* Icones personnalisées */
+    .login-icon {
+        display: flex !important;
+        justify-content: center !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .login-icon svg {
+        width: 48px !important;
+        height: 48px !important;
+        color: white !important;
+    }
+    
+    /* Responsive */
+    @media (max-width: 640px) {
+        #container {
+            margin: 1rem !important;
+            max-width: none !important;
+            transform: none !important;
+            top: auto !important;
+        }
+        
+        #header {
+            padding: 1.5rem !important;
+        }
+        
+        #content {
+            padding: 1.5rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1>{% trans 'Administration' %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="login">
+    <!-- Icône décorative -->
+    <div class="login-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+    </div>
+    
+    <h2 style="text-align: center; font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 1.5rem;">
+        Connexion
+    </h2>
+    
+    {% if form.errors and not form.non_field_errors %}
+        <div class="errornote">
+            {% if form.errors.items|length == 1 %}
+                {% trans "Veuillez corriger l'erreur ci-dessous." %}
+            {% else %}
+                {% trans "Veuillez corriger les erreurs ci-dessous." %}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+            <div class="errornote">
+                {{ error }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form action="{{ app_path }}" method="post" id="login-form">
+        {% csrf_token %}
+        
+        <div class="form-row">
+            <label for="id_username">{{ form.username.label }}</label>
+            {{ form.username }}
+        </div>
+        
+        <div class="form-row">
+            <label for="id_password">{{ form.password.label }}</label>
+            {{ form.password }}
+            <input type="hidden" name="next" value="{{ next }}">
+        </div>
+        
+        {% url 'admin_password_reset' as password_reset_url %}
+        {% if password_reset_url %}
+            <div class="password-reset-link">
+                <a href="{{ password_reset_url }}">{% trans 'Mot de passe oublié ?' %}</a>
+            </div>
+        {% endif %}
+        
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Se connecter' %}">
+        </div>
+    </form>
+    
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem; color: #9ca3af;">
+        Espace d'administration sécurisé
+    </div>
+</div>
+{% endblock %}

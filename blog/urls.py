@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from . import views
 
 app_name = 'blog'
@@ -22,4 +23,7 @@ urlpatterns = [
     path('admin/rss/create/', views.create_rss_article, name='create_rss_article'),
     path('admin/rss/edit/<slug:slug>/', views.edit_rss_article, name='edit_rss_article'),
     path('admin/rss/delete/<slug:slug>/', views.delete_rss_article, name='delete_rss_article'),
+
+    # Déconnexion personnalisée
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
 ]

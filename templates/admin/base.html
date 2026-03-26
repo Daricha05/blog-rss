@@ -1,0 +1,629 @@
+<!-- templates/admin/base.html -->
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}
+<html lang="{{ LANGUAGE_CODE|default:"fr" }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
+    {% block dark-mode-vars %}
+        <link rel="stylesheet" type="text/css" href="{% static "admin/css/dark_mode.css" %}">
+        <script src="{% static "admin/js/theme.js" %}" defer></script>
+    {% endblock %}
+    
+    {% if not is_popup and is_nav_sidebar_enabled %}
+        <link rel="stylesheet" type="text/css" href="{% static "admin/css/nav_sidebar.css" %}">
+        <script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
+    {% endif %}
+    
+    {% block extrastyle %}{% endblock %}
+    
+    {% if LANGUAGE_BIDI %}
+        <link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">
+    {% endif %}
+    
+    {% block extrahead %}{% endblock %}
+    {% block responsive %}
+        <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive.css" %}">
+        {% if LANGUAGE_BIDI %}
+            <link rel="stylesheet" type="text/css" href="{% static "admin/css/responsive_rtl.css" %}">
+        {% endif %}
+    {% endblock %}
+    
+    {% block blockbots %}
+        <meta name="robots" content="NONE,NOARCHIVE">
+    {% endblock %}
+    
+    <!-- Font Awesome pour les icônes (optionnel) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Styles de base supplémentaires */
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+        
+        /* Reset et styles de base */
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--gray-700);
+            background: var(--gray-50);
+        }
+        
+        /* Animations globales */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        #container {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Header amélioré */
+        #header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        #branding h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        #branding h1 a {
+            color: white;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        #branding h1 a:hover {
+            opacity: 0.9;
+        }
+        
+        /* User tools */
+        #user-tools {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        #user-tools a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        
+        #user-tools a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Breadcrumbs */
+        div.breadcrumbs {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        div.breadcrumbs a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        div.breadcrumbs a:hover {
+            color: var(--secondary);
+            text-decoration: underline;
+        }
+        
+        /* Messages */
+        .messagelist {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .messagelist li {
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 0;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .messagelist li.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left-color: var(--success);
+        }
+        
+        .messagelist li.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left-color: var(--danger);
+        }
+        
+        .messagelist li.warning {
+            background: #fed7aa;
+            color: #92400e;
+            border-left-color: var(--warning);
+        }
+        
+        .messagelist li.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left-color: var(--primary);
+        }
+        
+        /* Content */
+        #content {
+            padding: 1.5rem;
+        }
+        
+        /* Module cards */
+        .module {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .module h2 {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 0.875rem 1rem;
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .module caption {
+            background: var(--gray-100);
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-align: left;
+        }
+        
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        tr:hover {
+            background: var(--gray-50);
+        }
+        
+        /* Boutons */
+        .button, input[type="submit"], input[type="button"], .submit-row input, a.button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .button:hover, input[type="submit"]:hover, input[type="button"]:hover, .submit-row input:hover, a.button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .button.default, input[type="submit"].default, .submit-row input.default {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        }
+        
+        .button.warning, input[type="submit"].warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+        }
+        
+        .button.danger, input[type="submit"].danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+        }
+        
+        .button:disabled, input[type="submit"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Formulaires */
+        .aligned label {
+            font-weight: 500;
+            color: var(--gray-700);
+            width: 160px;
+        }
+        
+        .aligned .vTextField, .aligned .vURLField, .aligned .vEmailField,
+        .aligned .vIntegerField, .aligned .vDecimalField, .aligned textarea,
+        .aligned select, input[type="text"], input[type="password"], input[type="email"],
+        input[type="url"], input[type="number"], textarea, select {
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .aligned .vTextField:focus, .aligned .vURLField:focus, .aligned .vEmailField:focus,
+        .aligned .vIntegerField:focus, .aligned .vDecimalField:focus, .aligned textarea:focus,
+        .aligned select:focus, input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Submit row */
+        .submit-row {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* Pagination */
+        .paginator {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .paginator a, .paginator .this-page {
+            display: inline-block;
+            padding: 0.5rem 0.75rem;
+            margin: 0 0.25rem;
+            border-radius: 0.375rem;
+            text-decoration: none;
+        }
+        
+        .paginator a {
+            color: var(--primary);
+            background: var(--gray-100);
+        }
+        
+        .paginator a:hover {
+            background: var(--gray-200);
+        }
+        
+        .paginator .this-page {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        /* Sidebar */
+        #nav-sidebar {
+            background: white;
+            border-right: 1px solid var(--gray-200);
+        }
+        
+        #nav-sidebar .module {
+            background: transparent;
+            box-shadow: none;
+            margin-bottom: 0;
+        }
+        
+        /* Footer */
+        #footer {
+            background: white;
+            border-top: 1px solid var(--gray-200);
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-top: 2rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #header {
+                padding: 0.75rem 1rem;
+            }
+            
+            #branding {
+                float: none;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+            
+            #user-tools {
+                float: none;
+                text-align: center;
+            }
+            
+            #user-tools a {
+                margin: 0 0.5rem;
+            }
+            
+            #content {
+                padding: 1rem;
+            }
+            
+            .aligned label {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            
+            .aligned .vTextField, .aligned .vURLField, .aligned .vEmailField,
+            .aligned .vIntegerField, .aligned .vDecimalField, .aligned textarea,
+            .aligned select {
+                width: 100%;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --gray-50: #1f2937;
+                --gray-100: #374151;
+                --gray-200: #4b5563;
+                --gray-300: #6b7280;
+                --gray-400: #9ca3af;
+                --gray-500: #d1d5db;
+                --gray-600: #e5e7eb;
+                --gray-700: #f3f4f6;
+                --gray-800: #f9fafb;
+                --gray-900: #ffffff;
+            }
+            
+            body {
+                background: #111827;
+                color: #e5e7eb;
+            }
+            
+            .module, .paginator, #footer, div.breadcrumbs {
+                background: #1f2937;
+            }
+            
+            .module th {
+                background: #374151;
+                color: #e5e7eb;
+            }
+            
+            .aligned .vTextField, .aligned .vURLField, .aligned .vEmailField,
+            .aligned .vIntegerField, .aligned .vDecimalField, .aligned textarea,
+            .aligned select, input[type="text"], input[type="password"] {
+                background: #374151;
+                border-color: #4b5563;
+                color: #e5e7eb;
+            }
+        }
+        
+        /* Loading spinner */
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Tooltips */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+        
+        [data-tooltip]:before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.25rem 0.5rem;
+            background: var(--gray-800);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+            display: none;
+            z-index: 1000;
+        }
+        
+        [data-tooltip]:hover:before {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}"
+    data-admin-utc-offset="{% now "Z" %}">
+
+<!-- Container -->
+<div id="container">
+    {% if not is_popup %}
+        <!-- Header -->
+        <div id="header">
+            <div id="branding">
+                {% block branding %}{% endblock %}
+            </div>
+            {% block usertools %}
+                {% if has_permission %}
+                    <div id="user-tools">
+                        {% block welcome-msg %}
+                            {% translate 'Welcome,' %}
+                            <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+                        {% endblock %}
+                        {% block userlinks %}
+                            {% if site_url %}
+                                <a href="{{ site_url }}">{% translate 'View site' %}</a> /
+                            {% endif %}
+                            {% if user.is_active and user.is_staff %}
+                                {% url 'django-admindocs-docroot' as docsroot %}
+                                {% if docsroot %}
+                                    <a href="{{ docsroot }}">{% translate 'Documentation' %}</a> /
+                                {% endif %}
+                            {% endif %}
+                            {% if user.has_usable_password %}
+                                <a href="{% url 'admin:password_change' %}">{% translate 'Change password' %}</a> /
+                            {% endif %}
+                            <a href="{% url 'admin:logout' %}">{% translate 'Log out' %}</a>
+                        {% endblock %}
+                    </div>
+                {% endif %}
+            {% endblock %}
+            {% block nav-global %}{% endblock %}
+        </div>
+        <!-- END Header -->
+        
+        {% block breadcrumbs %}
+            <div class="breadcrumbs">
+                <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+                {% if title %} &rsaquo; {{ title }}{% endif %}
+            </div>
+        {% endblock %}
+    {% endif %}
+
+    <div class="main shifted" id="main">
+        {% if not is_popup and is_nav_sidebar_enabled %}
+            {% block nav-sidebar %}
+                {% include "admin/nav_sidebar.html" %}
+            {% endblock %}
+        {% endif %}
+        
+        <div id="content" class="{% block coltype %}colM{% endblock %}">
+            {% block messages %}
+                {% if messages %}
+                    <ul class="messagelist">
+                        {% for message in messages %}
+                            <li class="{{ message.tags }}">{{ message|capfirst }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endblock messages %}
+            
+            {% block pretitle %}{% endblock %}
+            {% block content_title %}
+                {% if title %}
+                    <h1>{{ title }}</h1>
+                {% endif %}
+            {% endblock %}
+            
+            {% block content_subtitle %}
+                {% if subtitle %}
+                    <h2>{{ subtitle }}</h2>
+                {% endif %}
+            {% endblock %}
+            
+            {% block content %}
+                {% block object-tools %}{% endblock %}
+                {{ content }}
+            {% endblock %}
+            
+            {% block sidebar %}{% endblock %}
+            <br class="clear">
+        </div>
+        <!-- END Content -->
+    </div>
+    
+    {% block footer %}
+        <div id="footer"></div>
+    {% endblock %}
+</div>
+<!-- END Container -->
+
+<!-- Scripts -->
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script src="{% static 'admin/js/core.js' %}"></script>
+<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+<script src="{% static 'admin/js/actions.js' %}"></script>
+<script src="{% static 'admin/js/urlify.js' %}"></script>
+<script src="{% static 'admin/js/prepopulate.js' %}"></script>
+<script src="{% static 'admin/js/vendor/xregexp/xregexp.js' %}"></script>
+
+{% if messages %}
+<script>
+    // Auto-hide messages after 5 seconds
+    setTimeout(function() {
+        var messages = document.querySelectorAll('.messagelist li');
+        messages.forEach(function(message) {
+            message.style.opacity = '0';
+            message.style.transform = 'translateX(-100%)';
+            setTimeout(function() {
+                message.remove();
+            }, 300);
+        });
+    }, 5000);
+</script>
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

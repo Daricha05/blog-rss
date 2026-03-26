@@ -5,6 +5,22 @@ from django.utils.text import slugify
 from django.core.paginator import Paginator
 from .models import Article, RSSArticle
 from .forms import ArticleForm, RSSArticleForm
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+
+
+def custom_logout(request):
+    """Vue de déconnexion personnalisée"""
+    logout(request)
+    messages.success(request, 'Vous avez été déconnecté avec succès.')
+    return redirect('blog:article_lists')
+
+# Ou avec décorateur
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Déconnexion réussie !')
+    return redirect('blog:article_lists')
 
 def article_lists(request):
     articles = Article.objects.all()
