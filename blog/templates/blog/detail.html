@@ -3,6 +3,146 @@
 
 {% block title %}{{ article.title }} - Mon Blog{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Styles spécifiques pour le contenu markdown */
+    .markdown-content {
+        line-height: 1.8;
+        color: #374151;
+    }
+    
+    .markdown-content h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: #111827;
+    }
+    
+    .markdown-content h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: #1F2937;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    .markdown-content h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .markdown-content p {
+        margin-bottom: 1.25rem;
+    }
+    
+    .markdown-content blockquote {
+        border-left: 4px solid #F97316;
+        padding-left: 1.5rem;
+        margin: 1.5rem 0;
+        color: #4B5563;
+        font-style: italic;
+        background: #F9FAFB;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+    }
+    
+    .markdown-content blockquote p {
+        margin-bottom: 0;
+    }
+    
+    .markdown-content code {
+        background: #F3F4F6;
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.375rem;
+        font-family: monospace;
+        font-size: 0.875em;
+        color: #DC2626;
+    }
+    
+    .markdown-content pre {
+        background: #1F2937;
+        color: #F3F4F6;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin: 1.25rem 0;
+    }
+    
+    .markdown-content pre code {
+        background: none;
+        color: inherit;
+        padding: 0;
+    }
+    
+    .markdown-content ul, .markdown-content ol {
+        margin: 1rem 0 1rem 2rem;
+    }
+    
+    .markdown-content li {
+        margin: 0.5rem 0;
+    }
+    
+    .markdown-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+    }
+    
+    .markdown-content th {
+        background: #F3F4F6;
+        padding: 0.75rem;
+        border: 1px solid #E5E7EB;
+        font-weight: 600;
+    }
+    
+    .markdown-content td {
+        padding: 0.75rem;
+        border: 1px solid #E5E7EB;
+    }
+    
+    .markdown-content hr {
+        margin: 2rem 0;
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #E5E7EB, transparent);
+    }
+    
+    .markdown-content a {
+        color: #F97316;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    .markdown-content a:hover {
+        border-bottom-color: #F97316;
+    }
+    
+    .markdown-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.75rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .markdown-content strong {
+        color: #111827;
+        font-weight: 700;
+    }
+    
+    .markdown-content em {
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <article class="max-w-4xl mx-auto">
     <!-- Back Button -->
@@ -36,8 +176,8 @@
         {% endif %}
     </header>
 
-    <!-- Article Content -->
-    <div class="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-orange-600 prose-img:rounded-xl">
+    <!-- Article Content with Markdown Support -->
+    <div class="markdown-content">
         {{ article.suggested_post|markdown }}
     </div>
 

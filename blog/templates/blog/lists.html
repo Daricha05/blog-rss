@@ -1,14 +1,95 @@
-{% extends "blog/base.html" %}
+{% extends 'blog/base.html' %}
+
+{% block title %}Articles - Mon Blog{% endblock %}
 
 {% block content %}
-<h2>Article récents</h2>
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Articles récents</h1>
+        <p class="text-xl text-gray-600">Découvrez nos derniers articles et actualités</p>
+    </div>
 
-{% for article in articles %}
-<article>
-    <h3><a href="{% url 'blog:detail' article.slug %}">{{article.title}}</a></h3>
-    <p>{{ article.published_at|date:"d F Y" }}</p>
-</article>
-{% empty %}
-<p>Aucun article pour le moment.</p>
-{% endfor %}
+    <!-- Articles Grid -->
+    <div class="space-y-8">
+        {% for article in articles %}
+            <article class="bg-white rounded-2xl shadow-md overflow-hidden card-hover">
+                <div class="md:flex">
+                    {% if article.image_url %}
+                        <div class="md:w-1/3">
+                            <img src="{{ article.image_url }}" alt="{{ article.title }}" class="h-48 md:h-full w-full object-cover">
+                        </div>
+                        <div class="md:w-2/3 p-6 md:p-8">
+                    {% else %}
+                        <div class="p-6 md:p-8">
+                    {% endif %}
+                        <!-- Category Badge -->
+                        <div class="flex items-center space-x-2 mb-3">
+                            <span class="px-3 py-1 bg-purple-100 text-purple-600 text-xs font-semibold rounded-full">Article</span>
+                            <span class="text-sm text-gray-500">{{ article.published_at|date:"d/m/Y" }}</span>
+                        </div>
+                        
+                        <!-- Title -->
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3 hover:text-indigo-600 transition">
+                            <a href="{% url 'blog:detail_article' slug=article.slug %}">{{ article.title }}</a>
+                        </h2>
+                        
+                        <!-- Excerpt -->
+                        <p class="text-gray-600 mb-4 line-clamp-3">
+                            {{ article.content|striptags|truncatewords:40 }}
+                        </p>
+                        
+                        <!-- Read More Link -->
+                        <a href="{% url 'blog:detail_article' slug=article.slug %}" class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium transition">
+                            Lire l'article
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                        
+                        <!-- Admin Actions -->
+                        {% if user.is_staff %}
+                            <div class="mt-4 pt-4 border-t border-gray-100 flex space-x-3">
+                                <a href="{% url 'blog:edit_article' slug=article.slug %}" class="text-sm text-gray-500 hover:text-indigo-600 transition">Modifier</a>
+                                <a href="{% url 'blog:delete_article' slug=article.slug %}" class="text-sm text-gray-500 hover:text-red-600 transition">Supprimer</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% empty %}
+            <div class="bg-white rounded-2xl shadow-md p-12 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                </svg>
+                <p class="text-gray-500 text-lg">Aucun article disponible pour le moment.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if articles.has_other_pages %}
+        <div class="mt-12 flex justify-center">
+            <nav class="flex items-center space-x-2">
+                {% if articles.has_previous %}
+                    <a href="?page=1" class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">«</a>
+                    <a href="?page={{ articles.previous_page_number }}" class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">‹</a>
+                {% endif %}
+                
+                {% for num in articles.paginator.page_range %}
+                    {% if articles.number == num %}
+                        <span class="px-4 py-2 rounded-lg bg-indigo-600 text-white">{{ num }}</span>
+                    {% elif num > articles.number|add:'-3' and num < articles.number|add:'3' %}
+                        <a href="?page={{ num }}" class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if articles.has_next %}
+                    <a href="?page={{ articles.next_page_number }}" class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">›</a>
+                    <a href="?page={{ articles.paginator.num_pages }}" class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition">»</a>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
