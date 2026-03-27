@@ -1,0 +1,7 @@
+[package]
+name = "blog-rss"
+version = "0.1.0"
+
+[commands]
+build = "pip install -r requirements.txt"
+start = "gunicorn src.wsgi:application"

@@ -11,26 +11,62 @@ import os
 class Command(BaseCommand):
     help = 'Sync articles from Google Sheets to Django'
 
-    def clean_url(self, url):
-        """Nettoie l'URL de l'image"""
-        if not url:
+    def extract_image_url(self, raw_data):
+        """
+        Extrait l'URL de l'image depuis différents formats :
+        - URL directe: https://exemple.com/image.jpg
+        - Balise img: <img src="https://exemple.com/image.jpg">
+        - Balise a avec img: <a href="..."><img src="https://exemple.com/image.jpg"></a>
+        """
+        if not raw_data:
             return ''
         
-        # Si c'est du HTML avec img tag
-        img_match = re.search(r'<img[^>]+src="([^">]+)"', url)
-        if img_match:
-            url = img_match.group(1)
+        # Cas 1: Déjà une URL directe
+        if raw_data.startswith('http://') or raw_data.startswith('https://'):
+            # Vérifier si c'est une URL d'image directe
+            if any(raw_data.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']):
+                return raw_data
+            
+        # Cas 2: Extraire de la balise img (plusieurs patterns)
+        patterns = [
+            r'<img[^>]+src="([^">]+)"',           # src avec guillemets
+            r"<img[^>]+src='([^'>]+)'",           # src avec apostrophes
+            r'<img[^>]+src=([^\s>]+)',            # src sans guillemets
+        ]
         
-        # Nettoyer
-        url = url.strip()
+        for pattern in patterns:
+            img_match = re.search(pattern, raw_data)
+            if img_match:
+                url = img_match.group(1)
+                # Nettoyer l'URL
+                url = url.strip()
+                if url and (url.startswith('http://') or url.startswith('https://')):
+                    return self.clean_url_length(url)
         
-        # Vérifier et limiter
+        # Cas 3: Chercher dans les balises a contenant des img
+        a_img_match = re.search(r'<a[^>]*>.*?<img[^>]+src="([^">]+)".*?</a>', raw_data, re.DOTALL)
+        if a_img_match:
+            url = a_img_match.group(1).strip()
+            if url.startswith('http://') or url.startswith('https://'):
+                return self.clean_url_length(url)
+        
+        # Cas 4: Chercher n'importe quelle URL dans le texte
+        url_match = re.search(r'https?://[^\s<>"\']+\.(?:jpg|jpeg|png|gif|webp|svg)', raw_data, re.IGNORECASE)
+        if url_match:
+            return self.clean_url_length(url_match.group(0))
+        
+        return ''
+
+    def clean_url_length(self, url):
+        """Limite la longueur de l'URL à 500 caractères"""
         if len(url) > 500:
-            # Extraire seulement l'URL de base sans paramètres
-            parsed = urlparse(url)
-            clean = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-            url = clean if len(clean) <= 500 else clean[:500]
-        
+            try:
+                parsed = urlparse(url)
+                # Garder seulement l'essentiel
+                clean = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+                url = clean[:500]
+            except:
+                url = url[:500]
         return url
 
     def clean_slug(self, title):
@@ -39,7 +75,7 @@ class Command(BaseCommand):
             return ''
         
         # Limiter le titre pour le slug
-        short_title = title[:100]  # Prendre seulement les 100 premiers caractères
+        short_title = title[:100]
         slug = slugify(short_title)
         
         # Tronquer à 50 caractères
@@ -50,14 +86,24 @@ class Command(BaseCommand):
         
         return slug
     
+    def clean_content(self, content):
+        """Nettoie le contenu HTML en supprimant les balises a autour des images"""
+        if not content:
+            return ''
+        
+        # Supprimer les balises a qui contiennent des images
+        cleaned = re.sub(r'<a[^>]*>\s*<img([^>]+)>\s*</a>', r'<img\1>', content)
+        
+        return cleaned
+    
     def handle(self, *args, **options):
         try:
             # Chercher credentials.json dans plusieurs endroits possibles
             possible_paths = [
-                'credentials.json',  # racine du projet
-                'blog/credentials.json',  # dans le dossier blog
-                os.path.join(os.path.dirname(__file__), '../../credentials.json'),  # relatif à la commande
-                os.path.join(os.path.dirname(__file__), '../credentials.json'),  # dans blog
+                'credentials.json',
+                'blog/credentials.json',
+                os.path.join(os.path.dirname(__file__), '../../credentials.json'),
+                os.path.join(os.path.dirname(__file__), '../credentials.json'),
             ]
             
             creds_path = None
@@ -106,21 +152,17 @@ class Command(BaseCommand):
                     content = record.get('Contenu', '')
                     date_str = record.get('Date', '')
                     
-                    # Nettoyer l'URL de l'image
-                    image_url = self.clean_url(record.get('URL Image', ''))
+                    # Extraire et nettoyer l'URL de l'image
+                    raw_image = record.get('URL Image', '')
+                    image_url = self.extract_image_url(raw_image)
+                    
+                    # Nettoyer le contenu (supprimer les balises a autour des images)
+                    clean_content = self.clean_content(content)
                     
                     # Générer un slug court
                     slug = self.clean_slug(title)
                     
-                    # Vérifier l'unicité du slug
-                    original_slug = slug
-                    counter = 1
-                    while RSSArticle.objects.filter(slug=slug).exists():
-                        suffix = f"-{counter}"
-                        slug = f"{original_slug[:50-len(suffix)]}{suffix}"
-                        counter += 1
-                    
-                    if not title or not content:
+                    if not title or not clean_content:
                         self.stdout.write(self.style.WARNING(f"Row {idx}: Missing title or content, skipping"))
                         continue
                     
@@ -136,28 +178,37 @@ class Command(BaseCommand):
                     except:
                         article_date = datetime.now().date()
                     
+                    # Vérifier l'unicité du slug
+                    original_slug = slug
+                    counter = 1
+                    unique_slug = slug
+                    while RSSArticle.objects.filter(slug=unique_slug).exists():
+                        suffix = f"-{counter}"
+                        unique_slug = f"{original_slug[:50-len(suffix)]}{suffix}"
+                        counter += 1
+                    
                     # Vérifier si l'article existe
                     existing = RSSArticle.objects.filter(title=title).first()
                     
                     if existing:
                         existing.date = article_date
-                        existing.suggested_post = content
-                        existing.image_url = image_url or ''
+                        existing.suggested_post = clean_content
+                        existing.image_url = image_url
                         existing.save()
                         articles_updated += 1
-                        self.stdout.write(f"Updated: {title}")
+                        self.stdout.write(f"Updated: {title[:50]}...")
                     else:
                         article = RSSArticle(
                             date=article_date,
                             title=title,
-                            slug=slugify(title),
-                            suggested_post=content,
-                            image_url=image_url or '',
+                            slug=unique_slug,
+                            suggested_post=clean_content,
+                            image_url=image_url,
                             published=False
                         )
                         article.save()
                         articles_created += 1
-                        self.stdout.write(f"Created: {title}")
+                        self.stdout.write(f"Created: {title[:50]}...")
                         
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f"Row {idx}: Error - {str(e)}"))

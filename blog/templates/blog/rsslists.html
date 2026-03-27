@@ -4,7 +4,7 @@
 {% block title %}Articles RSS - Mon Blog{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="text-center mb-12">
         <div class="inline-flex items-center space-x-2 bg-orange-100 text-orange-600 px-4 py-2 rounded-full mb-4">
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Articles Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {% for article in articles %}
             <article class="bg-white rounded-2xl shadow-md overflow-hidden card-hover group">
                 {% if article.image_url %}
